@@ -1,0 +1,19 @@
+{
+    "auth": {
+        "username": "admin",
+        "password": "admin123"
+    },
+    "webhookUrl": "",
+    "servers": [
+        {
+            "name": "Server 1",
+            "tsHost": "",
+            "displayHost": "",
+            "tsQueryPort": 10011,
+            "tsPort": 9987,
+            "tsUser": "serveradmin",
+            "tsPass": "",
+            "webhookUrl": ""
+        }
+    ]
+}

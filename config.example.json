@@ -1,0 +1,19 @@
+{
+  "auth": {
+    "username": "admin",
+    "password": "change-me"
+  },
+  "webhookUrl": "",
+  "servers": [
+    {
+      "name": "Example Server",
+      "tsHost": "your-server-ip-or-domain",
+      "displayHost": "example-server-name",
+      "tsQueryPort": 10011,
+      "tsPort": 9987,
+      "tsUser": "serveradmin",
+      "tsPass": "your-query-password",
+      "webhookUrl": ""
+    }
+  ]
+}

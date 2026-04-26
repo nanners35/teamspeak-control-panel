@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TeamSpeak Control Panel</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0b1220, #0f1b2d);
+            color: #e5e7eb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .panel {
+            width: 520px;
+            padding: 28px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        }
+
+        .title {
+            text-align: center;
+            font-size: 21px;
+            font-weight: bold;
+            color: #dbeafe;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 18px;
+        }
+
+        #serversContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .server-card {
+            padding: 16px;
+            border-radius: 16px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(56, 189, 248, 0.16);
+        }
+
+        .server-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .server-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #f8fafc;
+        }
+
+        .status-pill {
+            font-size: 11px;
+            font-weight: bold;
+            padding: 5px 9px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .status-pill.online {
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.35);
+        }
+
+        .status-pill.offline {
+            background: rgba(148, 163, 184, 0.12);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+        }
+
+        .status-pill.reconnecting {
+            background: rgba(251, 191, 36, 0.14);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.35);
+        }
+
+        .server-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .stat {
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.04);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .stat-value {
+            margin-top: 4px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #e5e7eb;
+            white-space: nowrap;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .connect-btn {
+            flex: 1;
+            padding: 9px;
+            border-radius: 10px;
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .connect-btn:hover {
+            background: rgba(56, 189, 248, 0.25);
+        }
+
+        .disconnect-btn {
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+        }
+
+        .disconnect-btn:hover {
+            background: rgba(239, 68, 68, 0.25);
+        }
+
+        .error {
+            margin-top: 10px;
+            color: #f87171;
+            font-size: 12px;
+            word-break: break-word;
+        }
+
+        .button-group {
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 11px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn.primary {
+            grid-column: span 2;
+            background: #38bdf8;
+            color: #0b1220;
+        }
+
+        .btn.secondary {
+            background: rgba(255,255,255,0.08);
+            color: #e5e7eb;
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+
+        .btn.danger {
+            background: rgba(239, 68, 68, 0.18);
+            color: #fecaca;
+            border: 1px solid rgba(239, 68, 68, 0.35);
+        }
+
+        .btn:hover {
+            filter: brightness(1.08);
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="panel">
+
+    <div class="title">TEAMSPEAK CONTROL PANEL</div>
+    <div class="subtitle">Live multi-server monitoring</div>
+
+    <div id="serversContainer">Loading...</div>
+
+    <div class="button-group">
+        <button class="btn primary" onclick="connectAll()">Connect All Servers</button>
+
+        <button class="btn secondary" onclick="window.location.href='/settings.html'">
+            Settings
+        </button>
+
+        <button class="btn danger" onclick="logout()">Logout</button>
+    </div>
+
+</div>
+
+<script>
+function timeAgo(date) {
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+
+    if (seconds < 5) return "just now";
+    if (seconds < 60) return seconds + "s ago";
+    if (seconds < 3600) return Math.floor(seconds / 60) + "m ago";
+
+    return Math.floor(seconds / 3600) + "h ago";
+}
+
+function getStatusText(server) {
+    if (server.reconnecting) return "RECONNECTING";
+    if (server.online) return "ONLINE";
+    return "OFFLINE";
+}
+
+function getStatusClass(server) {
+    if (server.reconnecting) return "reconnecting";
+    if (server.online) return "online";
+    return "offline";
+}
+
+async function logout() {
+    await fetch("/logout", {
+        method: "POST",
+        credentials: "include"
+    });
+
+    window.location.href = "/login.html";
+}
+
+async function connectAll() {
+    try {
+        await fetch("/connect", {
+            method: "POST",
+            credentials: "include"
+        });
+
+        update();
+    } catch (err) {
+        alert("Connect all failed");
+    }
+}
+
+async function connectOne(index) {
+    try {
+        await fetch("/connect", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ index })
+        });
+
+        update();
+    } catch (err) {
+        alert("Connect failed");
+    }
+}
+
+async function disconnectOne(index) {
+    try {
+        await fetch("/disconnect", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ index })
+        });
+
+        update();
+    } catch (err) {
+        alert("Disconnect failed");
+    }
+}
+
+async function update() {
+    try {
+        const res = await fetch("/status", {
+            credentials: "include"
+        });
+
+        if (!res.ok) {
+            window.location.href = "/login.html";
+            return;
+        }
+
+        const data = await res.json();
+        const container = document.getElementById("serversContainer");
+
+        if (!data.servers || data.servers.length === 0) {
+            container.innerHTML = "<div class=\"server-card\">No servers configured.</div>";
+            return;
+        }
+
+        container.innerHTML = data.servers.map((server, i) => `
+            <div class="server-card">
+                <div class="server-top">
+                    <div class="server-name">${server.name}</div>
+
+                    <div class="status-pill ${getStatusClass(server)}">
+                        ${getStatusText(server)}
+                    </div>
+                </div>
+
+                <div class="server-stats">
+                    <div class="stat">
+                        <div class="stat-label">Clients</div>
+                        <div class="stat-value">${server.clients ?? 0}</div>
+                    </div>
+
+                    <div class="stat">
+                        <div class="stat-label">Updated</div>
+                        <div class="stat-value">
+                            ${server.lastUpdate ? timeAgo(server.lastUpdate) : "N/A"}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="connect-btn" onclick="connectOne(${i})">
+                        Connect
+                    </button>
+
+                    <button class="connect-btn disconnect-btn" onclick="disconnectOne(${i})">
+                        Disconnect
+                    </button>
+                </div>
+
+                ${
+                    server.lastError
+                        ? `<div class="error">⚠ ${server.lastError}</div>`
+                        : ""
+                }
+            </div>
+        `).join("");
+
+    } catch (err) {
+        document.getElementById("serversContainer").innerHTML =
+            "<div class=\"error\">⚠ Connection error</div>";
+    }
+}
+
+setInterval(update, 5000);
+update();
+</script>
+
+</body>
+</html>

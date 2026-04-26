@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Server Settings</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0b1220, #0f1b2d);
+            color: #e5e7eb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .panel {
+            width: 540px;
+            padding: 28px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            position: relative;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 20px;
+            margin-bottom: 18px;
+            color: #dbeafe;
+            font-weight: bold;
+        }
+
+        .back {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: transparent;
+            border: none;
+            color: #cbd5e1;
+            cursor: pointer;
+        }
+
+        .section {
+            margin-top: 14px;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.22);
+        }
+
+        .section-title {
+            font-size: 13px;
+            color: #93c5fd;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 7px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(0,0,0,0.25);
+            color: #e5e7eb;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #38bdf8;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+
+        .btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background: #38bdf8;
+            color: #0b1220;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #0ea5e9;
+        }
+
+        .danger {
+            background: #ef4444 !important;
+            color: white !important;
+        }
+
+        .danger:hover {
+            background: #dc2626 !important;
+        }
+
+        #statusMsg,
+        #authMsg {
+            margin-top: 10px;
+            font-size: 13px;
+            min-height: 18px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="panel">
+
+    <button class="back" onclick="window.location.href='/index.html'">
+        ← Back
+    </button>
+
+    <div class="title">SERVER SETTINGS</div>
+
+    <div class="section">
+        <div class="section-title">Login Settings</div>
+
+        <input id="loginUsername" placeholder="Dashboard Username">
+
+        <input id="loginPassword" type="password" placeholder="New Dashboard Password">
+
+        <div class="hint">
+            This changes the username/password used to log into the dashboard.
+        </div>
+
+        <button class="btn" onclick="saveLogin()">
+            Save Login
+        </button>
+
+        <div id="authMsg"></div>
+    </div>
+
+    <div id="serverList"></div>
+
+    <button class="btn" onclick="addServer()">+ Add Server</button>
+    <button class="btn" onclick="saveSettings()">Save All Servers</button>
+
+    <div id="statusMsg"></div>
+
+</div>
+
+<script>
+let servers = [];
+
+async function loadSettings() {
+    try {
+        const res = await fetch("/settings", { credentials: "include" });
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        servers = data.servers || [];
+
+        document.getElementById("loginUsername").value = data.auth?.username || "";
+
+        renderServers();
+
+    } catch (e) {
+        console.log("Load error:", e);
+    }
+}
+
+function renderServers() {
+    const box = document.getElementById("serverList");
+    box.innerHTML = "";
+
+    servers.forEach((s, i) => {
+        box.innerHTML += `
+        <div class="section">
+
+            <div class="section-title">
+                Server ${i + 1}
+            </div>
+
+            <input placeholder="Server Name"
+                value="${s.name || ''}"
+                onchange="servers[${i}].name=this.value">
+
+            <input placeholder="Real Host / IP used by bot"
+                value="${s.tsHost || ''}"
+                onchange="servers[${i}].tsHost=this.value">
+
+            <input placeholder="Display Host shown in Discord"
+                value="${s.displayHost || ''}"
+                onchange="servers[${i}].displayHost=this.value">
+
+            <div class="hint">
+                Example: Real Host = 192.168.xxx.xxx, Display Host = servername
+            </div>
+
+            <input placeholder="Query Port"
+                value="${s.tsQueryPort || 10011}"
+                onchange="servers[${i}].tsQueryPort=Number(this.value)">
+
+            <input placeholder="Voice Port"
+                value="${s.tsPort || 9987}"
+                onchange="servers[${i}].tsPort=Number(this.value)">
+
+            <input placeholder="ServerQuery User"
+                value="${s.tsUser || ''}"
+                onchange="servers[${i}].tsUser=this.value">
+
+            <input type="password" placeholder="ServerQuery Password"
+                value="${s.tsPass || ''}"
+                onchange="servers[${i}].tsPass=this.value">
+
+            <input placeholder="Discord Webhook URL for this server"
+                value="${s.webhookUrl || ''}"
+                onchange="servers[${i}].webhookUrl=this.value">
+
+            <button class="btn danger" onclick="confirmDelete(${i})">
+                Delete Server
+            </button>
+
+        </div>`;
+    });
+}
+
+function addServer() {
+    servers.push({
+        name: "New Server",
+        tsHost: "",
+        displayHost: "",
+        tsQueryPort: 10011,
+        tsPort: 9987,
+        tsUser: "",
+        tsPass: "",
+        webhookUrl: ""
+    });
+
+    renderServers();
+}
+
+function confirmDelete(i) {
+    const name = servers[i]?.name || "this server";
+
+    if (confirm(`Delete ${name}? This cannot be undone.`)) {
+        deleteServer(i);
+    }
+}
+
+function deleteServer(i) {
+    servers.splice(i, 1);
+    renderServers();
+    saveSettings();
+}
+
+async function saveLogin() {
+    const msg = document.getElementById("authMsg");
+    const username = document.getElementById("loginUsername").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
+
+    msg.innerText = "Saving login...";
+    msg.style.color = "#94a3b8";
+
+    if (!username || !password) {
+        msg.innerText = "Username and password are required";
+        msg.style.color = "#f87171";
+        return;
+    }
+
+    try {
+        const res = await fetch("/auth/update", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+                username,
+                password
+            })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            msg.innerText = "Login updated ✔";
+            msg.style.color = "#38bdf8";
+            document.getElementById("loginPassword").value = "";
+        } else {
+            msg.innerText = data.error || "Login update failed";
+            msg.style.color = "#f87171";
+        }
+
+    } catch (e) {
+        msg.innerText = "Network error";
+        msg.style.color = "#f87171";
+    }
+}
+
+async function saveSettings() {
+    const msg = document.getElementById("statusMsg");
+
+    msg.innerText = "Saving servers...";
+    msg.style.color = "#94a3b8";
+
+    try {
+        const res = await fetch("/settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ servers })
+        });
+
+        if (res.ok) {
+            msg.innerText = "Servers saved ✔";
+            msg.style.color = "#38bdf8";
+        } else {
+            msg.innerText = "Save failed";
+            msg.style.color = "#f87171";
+        }
+
+    } catch (e) {
+        msg.innerText = "Network error";
+        msg.style.color = "#f87171";
+    }
+}
+
+window.addEventListener("DOMContentLoaded", loadSettings);
+</script>
+
+</body>
+</html>
