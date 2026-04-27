@@ -6,16 +6,16 @@ A full-stack web dashboard for monitoring and managing multiple TeamSpeak server
 Username: admin
 Password: admin123
 
-👉 Change these after first login.
+⚠️ Change these after first login.
 
 ✨ Features
-🔹 Multi-server support
-🔹 Real-time status monitoring (online/offline, client count)
-🔹 Connect / Disconnect servers from UI
-🔹 Automatic reconnect with safe retry intervals
-🔹 Per-server Discord webhook alerts
-🔹 Clean, modern web interface
-🔹 JSON-based configuration (no database required)
+Multi-server support
+Real-time status monitoring (online/offline, client count)
+Connect / Disconnect servers from UI
+Automatic reconnect with safe retry intervals
+Per-server Discord webhook alerts
+Clean, modern web interface
+JSON-based configuration (no database required)
 🖥️ Tech Stack
 Backend: Node.js + Express
 Frontend: HTML, CSS, JavaScript
@@ -89,15 +89,9 @@ Role-based authentication
 WebSocket real-time updates
 Metrics dashboard
 ⚠️ Security Notes
-❌ Do NOT commit config.json
-🔐 Rotate exposed webhooks or passwords
-📁 Use .gitignore to protect secrets
+Do NOT commit config.json
+Rotate exposed webhooks or passwords
+Use .gitignore to protect secrets
 💡 Author
 
 Built by Eugene J
-
-👍 This version does a few things right:
-Keeps setup dead simple
-Doesn’t overwhelm users with config details
-Still looks clean + legit
-Matches what you actually built
