@@ -7,6 +7,14 @@ const app = express();
 const PORT = 3000;
 
 // ======================
+// PROXY / HTTPS SUPPORT
+// ======================
+// Allows cookies to work on both:
+// - http://LXC-IP:3000
+// - https://your-domain.com behind reverse proxy
+app.set("trust proxy", true);
+
+// ======================
 // CONFIG LOADING / SAVING
 // ======================
 function loadConfig() {
@@ -61,13 +69,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
+    name: "ts_panel_session",
     secret: "change_this_to_secure_random_string",
     resave: false,
     saveUninitialized: false,
+    rolling: true,
+    proxy: true,
     cookie: {
         httpOnly: true,
-        secure: false,
-        sameSite: "lax"
+        secure: "auto",
+        sameSite: "lax",
+        maxAge: 30 * 60 * 1000
     }
 }));
 
@@ -92,7 +104,7 @@ app.post("/login", (req, res) => {
 
 app.post("/logout", (req, res) => {
     req.session.destroy(() => {
-        res.clearCookie("connect.sid");
+        res.clearCookie("ts_panel_session");
         res.json({ success: true });
     });
 });
