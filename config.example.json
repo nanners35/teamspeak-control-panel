@@ -1,7 +1,7 @@
 {
   "auth": {
     "username": "admin",
-    "password": "change-me"
+    "password": "admin123"
   },
   "webhookUrl": "",
   "servers": [
