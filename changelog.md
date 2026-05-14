@@ -26,3 +26,25 @@ Initial release of the TeamSpeak Control Panel.
 
 ## v1.0.1
 - Fixed reconnect bug
+
+---
+
+## v0.2.0
+
+Major stability and backend improvements for the TeamSpeak Control Panel.
+
+- Added automatic reconnect recovery after TeamSpeak restarts
+- Fixed stale connection states after TeamSpeak socket disconnects
+- Added reconnect scheduling after unexpected connection loss
+- Prevented manual disconnects from triggering reconnect loops
+- Improved disconnect behavior and immediate dashboard status updates
+- Added backend connection timeout protection
+- Prevented dashboard from getting stuck on "Connecting"
+- Improved socket error handling and dead connection cleanup
+- Added HTTP + HTTPS compatible session cookie support
+- Added reverse proxy support using `trust proxy`
+- Improved session persistence and logout handling
+- Added rolling session refresh and timeout support
+- Improved Linux / Proxmox deployment stability
+- Improved reconnect monitoring flow after TeamSpeak recovery
+- Updated dashboard backend structure and reliability
